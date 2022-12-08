@@ -4,11 +4,14 @@ from google.cloud import firestore
 from datetime import datetime
 import openai
 import config
+import json
+from google.oauth2 import service_account
 
-# Authenticate to Firestore with the JSON account key.
-db = firestore.Client.from_service_account_json("firestore-key.json")
-#openai api key
-openai.api_key=config.API_KEY_OPENAI
+key_dict = json.loads(st.secrets["textkey"])
+creds = service_account.Credentials.from_service_account_info(key_dict)
+db = firestore.Client(credentials=creds)
+openai.api_key=st.secrets["openai_key"]
+
 
 list_users = []
 users = db.collection("users")
