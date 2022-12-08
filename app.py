@@ -6,6 +6,8 @@ import openai
 import json
 from google.oauth2 import service_account
 
+st.set_page_config(page_title="Home", page_icon="📈")
+
 ### Load the Firestore Database ###
 key_dict = json.loads(st.secrets["textkey"])
 creds = service_account.Credentials.from_service_account_info(key_dict)
@@ -179,20 +181,20 @@ if st.session_state.login == True:
             
 
     
-    st.sidebar.subheader("Past entries")
+    # st.sidebar.subheader("Past entries")
 
-    list_dates = []
-    list_entries = []
-    entries = db.collection("journals").where(u"uid","==",st.session_state.uid)
+    # list_dates = []
+    # list_entries = []
+    # entries = db.collection("journals").where(u"uid","==",st.session_state.uid)
 
-    for doc in entries.stream():
-        list_dates.append(doc.id)
-        list_entries.append(doc.to_dict()['entry'])
+    # for doc in entries.stream():
+    #     list_dates.append(doc.id)
+    #     list_entries.append(doc.to_dict()['entry'])
 
-    for date,entry in zip(list_dates, list_entries):
-        # st.sidebar.markdown("- " + date)
-        with st.sidebar.expander(date):
-            st.write(entry)
+    # for date,entry in zip(list_dates, list_entries):
+    #     # st.sidebar.markdown("- " + date)
+    #     with st.sidebar.expander(date):
+    #         st.write(entry)
     
         
 
