@@ -6,22 +6,27 @@ import openai
 import json
 from google.oauth2 import service_account
 
+### Load the Firestore Database ###
 key_dict = json.loads(st.secrets["textkey"])
 creds = service_account.Credentials.from_service_account_info(key_dict)
 db = firestore.Client(credentials=creds)
+
+### Login to OpenAI ###
 openai.api_key=st.secrets["openai_key"]
 
-
+### Make a list of users registered in the DB ###
 list_users = []
 users = db.collection("users")
 for doc in users.stream():
 	list_users.append(doc.to_dict()['uid'])
 
+### Functions to use in the main script ###
 def compute_time():
     currentDateAndTime = datetime.now()
     currentTime = currentDateAndTime.strftime("%Y-%m-%d--%H:%M:%S")
     return currentTime
 
+### OpenAI functions ###
 def extract_todos(prompt):
     response = openai.Completion.create(
     model="text-davinci-003",
@@ -58,11 +63,15 @@ def refine_todos(prompt):
     )
     return response["choices"][0]["text"]
 
-st.title('Unfold :page_with_curl: ')
+
+### Beginning of the streamlit interface
+
+st.title('Unfold :brain: ')
 
 if 'login' not in st.session_state:
     st.session_state['login'] = False
 
+### If user is not signed in ###
 if st.session_state.login == False:
 
     placeholder = st.empty()
@@ -75,12 +84,13 @@ if st.session_state.login == False:
             st.session_state['login'] = True
             placeholder.empty()
 
+### If user is signed in ###
 if st.session_state.login == True:
 
     col1, col2 = st.columns([65, 35])
 
     with col1:
-
+        ### Journal part ###
         st.subheader("Journal")
         list_todos=[]
         list_pos=[]
@@ -88,27 +98,45 @@ if st.session_state.login == True:
             journal = st.text_area('Daily brain dump', "", height=300)
             submitted = st.form_submit_button("Submit")
             if submitted:
-                #compute the todos with GPT3
-                #save the journal entry
                 date = compute_time()
-                data = {
+                record = {
                     u'uid': st.session_state.uid,
                     u'date': date,
                     u'entry': journal
                 }
-                print(data)
-                db.collection(u'journals').document(str(date)).set(data)
+                # save the entry in the DB
+                db.collection(u'journals').document(str(date)).set(record)
+                # extract the todos
                 todos = extract_todos(journal)
+                # extract the positive thoughts
                 pos = extract_pos(journal)
-                # st.write(todos)
-                # st.write(pos)
+
+                ### Make a list out of the todos ###
                 list_todos = todos.split("\n")
                 list_todos = list(filter(None, list_todos))
                 list_todos = [l[2:] for l in list_todos]
 
+                # save todos in the DB
+                record_todos = {
+                    u'uid': st.session_state.uid,
+                    u'date': date,
+                    u'todos': list_todos
+                }
+                db.collection(u'todos').document(str(date)).set(record_todos)
+
+                ### Make a list out of the positive thougts ###
                 list_pos = pos.split("\n")
                 list_pos = list(filter(None, list_pos))
                 list_pos = [l[2:] for l in list_pos]
+
+                # save pos in the DB
+                record_pos = {
+                    u'uid': st.session_state.uid,
+                    u'date': date,
+                    u'pos': list_pos
+                }
+
+                db.collection(u'positives').document(str(date)).set(record_pos)
                 
 
 
