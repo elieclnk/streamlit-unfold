@@ -2,3 +2,6 @@ streamlit
 google-cloud-firestore
 datetime
 openai
+json
+google.oauth2
+
