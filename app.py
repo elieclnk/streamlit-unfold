@@ -3,7 +3,6 @@ import streamlit as st
 from google.cloud import firestore
 from datetime import datetime
 import openai
-import config
 import json
 from google.oauth2 import service_account
 
